@@ -1,3 +1,4 @@
+from datetime import datetime
 from pydantic import BaseModel, ConfigDict
 from typing import Optional
 from .models import UserRole
@@ -12,12 +13,18 @@ class UserCreate(UserBase):
 class UserLogin(UserBase):
     password: str
 
-class UserResponse(UserBase):
+class UserRead(UserBase):
     id: int
     role: UserRole
     is_active: bool
+    created_at: datetime
     
     model_config = ConfigDict(from_attributes=True)
+
+class UserUpdate(BaseModel):
+    password: Optional[str] = None
+    role: Optional[UserRole] = None
+    is_active: Optional[bool] = None
 
 class Token(BaseModel):
     access_token: str
