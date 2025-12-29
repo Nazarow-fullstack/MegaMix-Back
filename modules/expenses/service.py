@@ -4,8 +4,10 @@ from typing import List, Optional
 from datetime import datetime, date, time
 
 from .models import Expense
-from .schemas import ExpenseCreate
+from .schemas import ExpenseCreate, ExpenseUpdate
 from modules.auth.models import User
+
+from core.utils import get_date_range
 
 def create_expense(db: Session, expense_data: ExpenseCreate, user: User) -> Expense:
     db_expense = Expense(
@@ -21,15 +23,14 @@ def create_expense(db: Session, expense_data: ExpenseCreate, user: User) -> Expe
 
 def get_expenses(
     db: Session, 
-    start_date: Optional[datetime] = None, 
-    end_date: Optional[datetime] = None
+    period: str = "all", 
+    month: Optional[int] = None, 
+    year: Optional[int] = None
 ) -> List[Expense]:
-    query = db.query(Expense)
+    start_date, end_date = get_date_range(period, month, year)
     
-    if start_date and end_date:
-        query = query.filter(and_(Expense.created_at >= start_date, Expense.created_at <= end_date))
-    
-    return query.all()
+    query = db.query(Expense).filter(and_(Expense.created_at >= start_date, Expense.created_at <= end_date))
+    return query.order_by(Expense.created_at.desc()).all()
 
 def delete_expense(db: Session, expense_id: int) -> bool:
     expense = db.query(Expense).filter(Expense.id == expense_id).first()
@@ -38,3 +39,19 @@ def delete_expense(db: Session, expense_id: int) -> bool:
         db.commit()
         return True
     return False
+
+def update_expense(db: Session, expense_id: int, expense_data: ExpenseUpdate) -> Optional[Expense]:
+    expense = db.query(Expense).filter(Expense.id == expense_id).first()
+    if not expense:
+        return None
+
+    if expense_data.amount is not None:
+        expense.amount = expense_data.amount
+    if expense_data.category is not None:
+        expense.category = expense_data.category
+    if expense_data.description is not None:
+        expense.description = expense_data.description
+
+    db.commit()
+    db.refresh(expense)
+    return expense

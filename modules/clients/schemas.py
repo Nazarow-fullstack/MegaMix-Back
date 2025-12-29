@@ -3,6 +3,12 @@ from decimal import Decimal
 from typing import Optional
 from datetime import datetime
 
+from enum import Enum
+
+class TransactionType(str, Enum):
+    sale = "sale"
+    payment = "payment"
+
 class ClientBase(BaseModel):
     full_name: str
     phone: str
@@ -10,9 +16,14 @@ class ClientBase(BaseModel):
 class ClientCreate(ClientBase):
     pass
 
+class ClientUpdate(BaseModel):
+    full_name: Optional[str] = None
+    phone: Optional[str] = None
+
 class ClientRead(ClientBase):
     id: int
     total_debt: Decimal
+    is_active: bool
     created_at: datetime
     
     model_config = ConfigDict(from_attributes=True)
@@ -31,3 +42,10 @@ class PaymentRead(BaseModel):
     performed_by_id: int
     
     model_config = ConfigDict(from_attributes=True)
+
+class ClientHistoryItem(BaseModel):
+    id: int
+    type: TransactionType
+    amount: Decimal
+    date: datetime
+    description: Optional[str] = None

@@ -9,6 +9,11 @@ class ExpenseCreate(BaseModel):
     category: ExpenseCategory
     description: Optional[str] = None
 
+class ExpenseUpdate(BaseModel):
+    amount: Optional[float] = None
+    category: Optional[ExpenseCategory] = None
+    description: Optional[str] = None
+
 class ExpenseRead(BaseModel):
     id: int
     amount: Decimal

@@ -32,10 +32,13 @@ def create_sale(
 def read_sales(
     skip: int = 0,
     limit: int = 100,
+    period: str = "all",
+    month: int = None,
+    year: int = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_manager)
 ):
-    return db.query(Sale).offset(skip).limit(limit).all()
+    return service.get_sales(db=db, skip=skip, limit=limit, period=period, month=month, year=year)
 
 @router.get("/sales/{sale_id}", response_model=SaleRead)
 def read_sale(

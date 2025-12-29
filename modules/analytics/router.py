@@ -7,7 +7,7 @@ from db_config import get_db
 from modules.auth.dependencies import get_current_active_user
 from modules.auth.models import User, UserRole
 from . import service
-from .schemas import AnalyticsResponse, StockReportItem
+from .schemas import AnalyticsResponse, StockReportItem, ProductSalesSummary
 
 router = APIRouter()
 
@@ -47,3 +47,16 @@ def get_stock_report(
         
     report = service.get_monthly_stock_report(db, month, year)
     return report
+
+@router.get("/sales-by-product", response_model=list[ProductSalesSummary])
+def get_sales_by_product(
+    period: PeriodEnum = Query(PeriodEnum.today),
+    month: Optional[int] = Query(None, ge=1, le=12, description="Filter by specific month (1-12)"),
+    year: Optional[int] = Query(None, ge=2000, description="Filter by specific year (e.g. 2024)"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    if current_user.role == UserRole.WORKER:
+        raise HTTPException(status_code=403, detail="Not authorized to view analytics")
+        
+    return service.get_sales_by_product(db, period.value, month=month, year=year)

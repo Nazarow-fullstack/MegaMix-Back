@@ -28,6 +28,7 @@ class SaleRead(BaseModel):
     paid_amount: Decimal
     items: List[SaleItemRead]
     created_at: datetime
+    estimated_profit: Optional[float] = None
     
     model_config = ConfigDict(from_attributes=True)
 

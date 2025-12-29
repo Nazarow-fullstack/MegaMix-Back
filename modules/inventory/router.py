@@ -14,7 +14,8 @@ from .schemas import (
     ProductReadManager,
     ProductReadWorker,
     StockMovementCreate,
-    StockMovementRead
+    StockMovementRead,
+    ProductUpdate
 )
 
 router = APIRouter()
@@ -71,3 +72,27 @@ def read_product_movements(
     current_user: User = Depends(get_current_active_user)
 ):
     return service.get_product_movements(db, product_id, skip, limit)
+
+@router.put("/products/{product_id}", response_model=ProductReadAdmin)
+def update_product(
+    product_id: int,
+    product_data: ProductUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    if current_user.role not in [UserRole.ADMIN, UserRole.MANAGER]:
+         raise HTTPException(status_code=403, detail="Not authorized")
+    
+    return service.update_product(db=db, product_id=product_id, data=product_data)
+
+@router.delete("/products/{product_id}")
+def delete_product(
+    product_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    if current_user.role not in [UserRole.ADMIN, UserRole.MANAGER]:
+         raise HTTPException(status_code=403, detail="Not authorized")
+         
+    service.delete_product(db=db, product_id=product_id)
+    return {"detail": "Product deleted successfully"}

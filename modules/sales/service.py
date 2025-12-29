@@ -230,4 +230,45 @@ def get_product_sales_history(db: Session, product_id: int, skip: int = 0, limit
             "total": Decimal(item.quantity) * item.price
         })
         
+    for item, sale, client, seller in results:
+        history.append({
+            "sale_id": sale.id,
+            "sale_date": sale.created_at,
+            "client_name": client.full_name if client else "Anonymous",
+            "quantity": item.quantity,
+            "unit_price": item.price,
+            "seller_name": seller.username,
+            "total": Decimal(item.quantity) * item.price
+        })
+        
     return history
+
+from core.utils import get_date_range
+from sqlalchemy import and_
+
+def get_sales(
+    db: Session, 
+    skip: int = 0, 
+    limit: int = 100, 
+    period: str = "all", 
+    month: int = None, 
+    year: int = None
+) -> list[Sale]:
+    start_date, end_date = get_date_range(period, month, year)
+    
+    query = db.query(Sale).filter(and_(Sale.created_at >= start_date, Sale.created_at <= end_date))
+    sales = query.order_by(Sale.created_at.desc()).offset(skip).limit(limit).all()
+
+    for sale in sales:
+        profit = 0.0
+        for item in sale.items:
+            # Handle potential missing product or buy_price
+            buy_price = float(item.product.buy_price) if item.product and item.product.buy_price else 0.0
+            sell_price = float(item.price)
+            quantity = float(item.quantity)
+            
+            profit += (sell_price - buy_price) * quantity
+        
+        sale.estimated_profit = profit
+
+    return sales

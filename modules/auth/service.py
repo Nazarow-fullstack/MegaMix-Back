@@ -7,6 +7,12 @@ from .security import get_password_hash
 def get_all_users(db: Session, skip: int = 0, limit: int = 100):
     return db.query(User).offset(skip).limit(limit).all()
 
+def get_user_by_id(db: Session, user_id: int):
+    val = db.query(User).filter(User.id == user_id).first()
+    if not val:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    return val
+
 def update_user(db: Session, user_id: int, user_update: UserUpdate):
     db_user = db.query(User).filter(User.id == user_id).first()
     if not db_user:
@@ -31,6 +37,8 @@ def delete_user(db: Session, user_id: int):
     if not db_user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
         
-    db.delete(db_user)
+    db_user.is_active = False
+    
+    
     db.commit()
     return db_user

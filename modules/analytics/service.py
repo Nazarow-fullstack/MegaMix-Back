@@ -159,3 +159,49 @@ def get_monthly_stock_report(db: Session, month: int, year: int) -> list[dict]:
         })
         
     return results
+
+def get_sales_by_product(db: Session, period: str, month: Optional[int] = None, year: Optional[int] = None) -> list[dict]:
+    now = datetime.now()
+    
+    if month:
+        target_year = year if year else now.year
+        _, last_day = calendar.monthrange(target_year, month)
+        
+        start_date = datetime(target_year, month, 1, 0, 0, 0)
+        end_date = datetime(target_year, month, last_day, 23, 59, 59)
+    else:
+        end_date = now
+        
+        if period == "today":
+            start_date = datetime.combine(now.date(), time.min)
+        elif period == "week":
+            start_date = now - timedelta(days=7)
+        elif period == "month":
+            start_date = now - timedelta(days=30)
+        else:
+            start_date = datetime.combine(now.date(), time.min)
+
+    results = db.query(
+        Product.id,
+        Product.name,
+        Product.unit,
+        func.sum(SaleItem.quantity).label("total_quantity"),
+        func.sum(SaleItem.quantity * SaleItem.price).label("total_revenue")
+    ).select_from(SaleItem)\
+    .join(Sale, Sale.id == SaleItem.sale_id)\
+    .join(Product, Product.id == SaleItem.product_id)\
+    .filter(and_(Sale.created_at >= start_date, Sale.created_at <= end_date))\
+    .group_by(Product.id)\
+    .order_by(func.sum(SaleItem.quantity).desc())\
+    .all()
+
+    return [
+        {
+            "product_id": r.id,
+            "product_name": r.name,
+            "unit": r.unit,
+            "total_quantity": float(r.total_quantity or 0),
+            "total_revenue": Decimal(r.total_revenue or 0)
+        }
+        for r in results
+    ]

@@ -16,3 +16,10 @@ class StockReportItem(BaseModel):
     name: str
     unit: str
     historical_quantity: float
+
+class ProductSalesSummary(BaseModel):
+    product_id: int
+    product_name: str
+    unit: str
+    total_quantity: float
+    total_revenue: Decimal

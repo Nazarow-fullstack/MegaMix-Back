@@ -7,7 +7,7 @@ from db_config import get_db
 from modules.auth.dependencies import require_manager, require_admin
 from modules.auth.models import User
 from . import service
-from .schemas import ExpenseCreate, ExpenseRead
+from .schemas import ExpenseCreate, ExpenseRead, ExpenseUpdate
 
 router = APIRouter(tags=["Expenses"])
 
@@ -21,12 +21,13 @@ def create_expense(
 
 @router.get("/", response_model=List[ExpenseRead])
 def read_expenses(
-    start_date: Optional[datetime] = None,
-    end_date: Optional[datetime] = None,
+    period: str = "all",
+    month: int = None,
+    year: int = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_manager)
 ):
-    return service.get_expenses(db=db, start_date=start_date, end_date=end_date)
+    return service.get_expenses(db=db, period=period, month=month, year=year)
 
 @router.delete("/{expense_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_expense(
@@ -37,3 +38,15 @@ def delete_expense(
     success = service.delete_expense(db=db, expense_id=expense_id)
     if not success:
         raise HTTPException(status_code=404, detail="Expense not found")
+
+@router.put("/{expense_id}", response_model=ExpenseRead)
+def update_expense(
+    expense_id: int,
+    expense_data: ExpenseUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_manager)
+):
+    updated_expense = service.update_expense(db=db, expense_id=expense_id, expense_data=expense_data)
+    if not updated_expense:
+        raise HTTPException(status_code=404, detail="Expense not found")
+    return updated_expense

@@ -11,7 +11,7 @@ from .schemas import Token, UserCreate, UserRead, UserUpdate
 from .models import User
 from .security import create_access_token, get_password_hash, verify_password 
 from .dependencies import get_current_active_user, require_admin
-from .service import get_all_users, update_user, delete_user
+from .service import get_all_users, update_user, delete_user, get_user_by_id
 
 router = APIRouter()
 
@@ -75,6 +75,14 @@ def read_users(
     current_user: User = Depends(get_current_active_user)
 ):
     return get_all_users(db, skip=skip, limit=limit)
+
+@router.get("/users/{user_id}", response_model=UserRead)
+def read_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin)
+):
+    return get_user_by_id(db, user_id)
 
 @router.put("/users/{user_id}", response_model=UserRead)
 def update_user_endpoint(

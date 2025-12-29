@@ -1,4 +1,4 @@
-from sqlalchemy import String, Float, DateTime, func, ForeignKey, Numeric
+from sqlalchemy import String, Float, DateTime, func, ForeignKey, Numeric, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from db_config import Base
 
@@ -8,6 +8,7 @@ class Client(Base):
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     full_name: Mapped[str] = mapped_column(String, index=True, nullable=False)
     phone: Mapped[str] = mapped_column(String, unique=True, index=True, nullable=False)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     total_debt: Mapped[float] = mapped_column(Numeric(10, 2), default=0.0)
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     

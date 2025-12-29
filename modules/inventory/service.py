@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 from .models import Product, StockMovement, MovementType
-from .schemas import ProductCreate, StockMovementCreate
+from .schemas import ProductCreate, StockMovementCreate, ProductUpdate
 from modules.auth.models import User
 
 def create_product(db: Session, product: ProductCreate) -> Product:
@@ -68,3 +68,30 @@ def get_product_movements(db: Session, product_id: int, skip: int = 0, limit: in
             "performed_by_name": u.username
         })
     return movements
+
+def update_product(db: Session, product_id: int, data: ProductUpdate) -> Product:
+    product = db.query(Product).filter(Product.id == product_id).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    update_data = data.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(product, key, value)
+
+    db.add(product)
+    db.commit()
+    db.refresh(product)
+    return product
+
+def delete_product(db: Session, product_id: int):
+    product = db.query(Product).filter(Product.id == product_id).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    try:
+        db.delete(product)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        # likely integrity error if foreign keys exist and no cascade
+        raise HTTPException(status_code=400, detail="Cannot delete product. It likely has associated stock movements or history.")
