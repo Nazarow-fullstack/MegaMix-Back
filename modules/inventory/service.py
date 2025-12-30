@@ -1,8 +1,17 @@
+from typing import Optional, List
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 from .models import Product, StockMovement, MovementType
 from .schemas import ProductCreate, StockMovementCreate, ProductUpdate
 from modules.auth.models import User
+
+def get_products(db: Session, skip: int = 0, limit: int = 100, search: Optional[str] = None) -> List[Product]:
+    query = db.query(Product)
+    
+    if search:
+        query = query.filter(Product.name.ilike(f"%{search}%"))
+        
+    return query.offset(skip).limit(limit).all()
 
 def create_product(db: Session, product: ProductCreate) -> Product:
     db_product = Product(**product.model_dump())

@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import List, Union, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -32,10 +32,11 @@ def create_product(
 def read_products(
     skip: int = 0,
     limit: int = 100,
+    search: Optional[str] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user)
 ):
-    products = db.query(Product).offset(skip).limit(limit).all()
+    products = service.get_products(db=db, skip=skip, limit=limit, search=search)
     
     # Selecting the schema based on role is tricky with response_model=Union because FastAPI
     # might try to validate against the first matching one or all.

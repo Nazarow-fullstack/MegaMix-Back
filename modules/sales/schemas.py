@@ -12,11 +12,18 @@ class SaleCreate(BaseModel):
     paid_amount: Decimal
     items: List[SaleItemCreate]
 
+class ProductSimpleRead(BaseModel):
+    id: int
+    name: str
+    unit: str
+    model_config = ConfigDict(from_attributes=True)
+
 class SaleItemRead(BaseModel):
     id: int
     product_id: int
     quantity: float
     price: Decimal
+    product: ProductSimpleRead
     
     model_config = ConfigDict(from_attributes=True)
 
