@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -31,10 +31,11 @@ def create_client(
 def read_clients(
     skip: int = 0,
     limit: int = 100,
+    search: Optional[str] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_manager)
 ):
-    return service.get_clients(db=db, skip=skip, limit=limit)
+    return service.get_clients(db=db, skip=skip, limit=limit, search=search)
 
 @router.get("/clients/{client_id}", response_model=ClientRead)
 def read_client(

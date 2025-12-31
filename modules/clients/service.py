@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import or_
 from fastapi import HTTPException
-from typing import List
+from typing import List, Optional
 from .models import Client, Payment
 from .schemas import ClientCreate, PaymentCreate, ClientHistoryItem, TransactionType, ClientUpdate
 from modules.sales.models import Sale
@@ -18,8 +19,18 @@ def create_client(db: Session, client: ClientCreate) -> Client:
     db.refresh(db_client)
     return db_client
 
-def get_clients(db: Session, skip: int = 0, limit: int = 100) -> List[Client]:
-    return db.query(Client).filter(Client.is_active == True).offset(skip).limit(limit).all()
+def get_clients(db: Session, skip: int = 0, limit: int = 100, search: Optional[str] = None) -> List[Client]:
+    query = db.query(Client).filter(Client.is_active == True)
+    
+    if search:
+        query = query.filter(
+            or_(
+                Client.full_name.ilike(f"%{search}%"),
+                Client.phone.ilike(f"%{search}%")
+            )
+        )
+    
+    return query.offset(skip).limit(limit).all()
 
 def add_payment(db: Session, payment: PaymentCreate, user: User) -> Payment:
     """
