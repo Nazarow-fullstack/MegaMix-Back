@@ -46,27 +46,12 @@ def get_analytics(db: Session, period: str, month: Optional[int] = None, year: O
 
     sales_count = len(sales_in_period)
 
-    # Calculate Gross Profit from Sales
-    # Profit = (SaleItem.price - Product.buy_price) * Quantity
-    # We need to iterate perfectly or use a smart query. Iterating is safer for complex logic MVP.
-    gross_sales_profit = 0.0
-    total_cogs = 0.0
+    # Calculate Gross Sales (Revenue)
+    # Note: We no longer calculate COGS here because COGS is now recorded as an Expense (PURCHASE) when stock arrives.
+    # So Profit = Revenue - Expenses.
     
-    sale_items_query = db.query(SaleItem).join(Sale).filter(
-        and_(Sale.created_at >= start_date, Sale.created_at <= end_date)
-    ).all()
-
-    for item in sale_items_query:
-        # Check if product exists (it should)
-        buy_price = float(item.product.buy_price) if item.product and item.product.buy_price else 0.0
-        sell_price = float(item.price)
-        qty = float(item.quantity)
-        
-        cogs_per_item = buy_price * qty
-        total_cogs += cogs_per_item
-
-        profit_per_item = (sell_price - buy_price) * qty
-        gross_sales_profit += profit_per_item
+    # We just need Revenue.
+    # (Already calculated as gross_sales_revenue)
 
     # --- 2. Refund Metrics (Negative) ---
     # Query all refunds in the period
@@ -77,26 +62,6 @@ def get_analytics(db: Session, period: str, month: Optional[int] = None, year: O
     total_refunded_amount = 0.0
     for refund in refunds_in_period:
         total_refunded_amount += float(refund.total_refund_amount)
-
-    # Calculate "Lost Profit" from Refunds and Cost of Returns
-    # Lost Profit = (RefundItem.refund_price - Product.buy_price) * Quantity
-    lost_profit = 0.0
-    cogs_returned = 0.0
-    
-    refund_items_query = db.query(RefundItem).join(Refund).filter(
-        and_(Refund.created_at >= start_date, Refund.created_at <= end_date)
-    ).all()
-
-    for item in refund_items_query:
-        buy_price = float(item.product.buy_price) if item.product and item.product.buy_price else 0.0
-        refund_price = float(item.refund_price)
-        qty = float(item.quantity)
-        
-        # This is the profit we originally made but now have to give back (or lose)
-        lost_profit_per_item = (refund_price - buy_price) * qty
-        lost_profit += lost_profit_per_item
-        
-        cogs_returned += buy_price * qty
 
     # --- 3. Expenses ---
     expenses_query = db.query(Expense).filter(
@@ -110,13 +75,14 @@ def get_analytics(db: Session, period: str, month: Optional[int] = None, year: O
     # --- 4. Final Aggregation ---
     net_revenue = gross_sales_revenue - total_refunded_amount
     
-    # Net Profit = (Gross Sales Profit - Lost Profit) - Expenses
-    net_profit = (gross_sales_profit - lost_profit) - total_expenses
+    # Net Profit = Revenue - Expenses
+    # Expenses now include "PURCHASE" (COGS)
+    net_profit = net_revenue - total_expenses
 
     return {
         "period": period_label,
-        "total_revenue": Decimal(net_revenue), # Cast back to Decimal for Schema
-        "total_cogs": Decimal(total_cogs - cogs_returned), # Net COGS
+        "total_revenue": Decimal(net_revenue), 
+        "total_cogs": Decimal(0), # Deprecated concept in this view, or we could sum PURCHASE expenses specifically if needed.
         "total_refunds": Decimal(total_refunded_amount),
         "total_profit": Decimal(net_profit),
         "total_expenses": Decimal(total_expenses),

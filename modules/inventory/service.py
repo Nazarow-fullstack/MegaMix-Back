@@ -1,9 +1,11 @@
 from typing import Optional, List
+from decimal import Decimal
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 from .models import Product, StockMovement, MovementType
 from .schemas import ProductCreate, StockMovementCreate, ProductUpdate
 from modules.auth.models import User
+from modules.expenses.models import Expense, ExpenseCategory
 
 def get_products(db: Session, skip: int = 0, limit: int = 100, search: Optional[str] = None) -> List[Product]:
     query = db.query(Product)
@@ -40,6 +42,18 @@ def process_stock_movement(db: Session, movement: StockMovementCreate, user: Use
         product.quantity -= movement.change_amount
     elif movement.type == MovementType.IN:
         product.quantity += movement.change_amount
+        
+        # Auto-Expense Logic
+        cost = Decimal(movement.change_amount) * Decimal(product.buy_price)
+        description = f"Auto-expense for product #{product.id} ({product.name}) arrival"
+        
+        expense = Expense(
+            amount=cost,
+            category=ExpenseCategory.PURCHASE,
+            description=description,
+            created_by_id=user.id
+        )
+        db.add(expense)
     else:
         # Fallback for other types
         product.quantity += movement.change_amount

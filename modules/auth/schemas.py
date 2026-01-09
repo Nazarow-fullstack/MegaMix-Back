@@ -21,6 +21,11 @@ class UserRead(UserBase):
     
     model_config = ConfigDict(from_attributes=True)
 
+class UserProfile(UserRead):
+    total_sales_count: int
+    total_sales_amount: float
+    # We could add more stats here
+
 class UserUpdate(BaseModel):
     password: Optional[str] = None
     role: Optional[UserRole] = None

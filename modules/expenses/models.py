@@ -1,5 +1,5 @@
 from enum import Enum
-from sqlalchemy import String, DateTime, func, ForeignKey, Numeric, Enum as SAEnum
+from sqlalchemy import String, DateTime, func, ForeignKey, Numeric, Enum as SAEnum, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from db_config import Base
 
@@ -8,6 +8,7 @@ class ExpenseCategory(str, Enum):
     RENT = "rent"
     UTILITIES = "utilities"
     TAXES = "taxes"
+    PURCHASE = "purchase"
     OTHER = "other"
 
 class Expense(Base):

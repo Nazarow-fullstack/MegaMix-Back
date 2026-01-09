@@ -10,17 +10,19 @@ class ProductBase(BaseModel):
     description: Optional[str] = None
     unit: str
     min_stock_level: Optional[float] = 10.0
+    items_per_pack: Optional[int] = 1
 
 class ProductCreate(ProductBase):
-    buy_price: Decimal
-    sell_price: Decimal
+    buy_price: float
+    recommended_price: Optional[float] = None
 
 class ProductUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
     unit: Optional[str] = None
-    buy_price: Optional[Decimal] = None
-    sell_price: Optional[Decimal] = None
+    items_per_pack: Optional[int] = None
+    buy_price: Optional[float] = None
+    recommended_price: Optional[float] = None
     min_stock_level: Optional[float] = None
 
 # Response Schemas for different roles
@@ -32,7 +34,7 @@ class ProductReadWorker(ProductBase):
     model_config = ConfigDict(from_attributes=True)
 
 class ProductReadManager(ProductReadWorker):
-    sell_price: Decimal
+    recommended_price: Decimal
 
 class ProductReadAdmin(ProductReadManager):
     buy_price: Decimal

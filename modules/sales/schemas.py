@@ -6,6 +6,7 @@ from datetime import datetime
 class SaleItemCreate(BaseModel):
     product_id: int
     quantity: float
+    sold_price: Decimal
 
 class SaleCreate(BaseModel):
     client_id: Optional[int] = None

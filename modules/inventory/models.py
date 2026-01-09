@@ -1,5 +1,5 @@
 from enum import Enum
-from sqlalchemy import String, Float, Enum as SAEnum, DateTime, func, ForeignKey, Numeric
+from sqlalchemy import String, Float, Enum as SAEnum, DateTime, func, ForeignKey, Numeric, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from db_config import Base
 
@@ -15,8 +15,9 @@ class Product(Base):
     name: Mapped[str] = mapped_column(String, index=True, nullable=False)
     description: Mapped[str | None] = mapped_column(String, nullable=True)
     unit: Mapped[str] = mapped_column(String, nullable=False)  # kg, pcs, etc.
+    items_per_pack: Mapped[int] = mapped_column(Integer, default=1) # How many items in 1 pack
     buy_price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False) # Secret
-    sell_price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
+    recommended_price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
     quantity: Mapped[float] = mapped_column(Float, default=0.0) 
     min_stock_level: Mapped[float] = mapped_column(Float, default=10.0)
     

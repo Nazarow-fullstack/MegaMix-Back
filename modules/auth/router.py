@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 # Твой конфиг базы (лежит в корне)
 from db_config import get_db
 from core.config import settings
-from .schemas import Token, UserCreate, UserRead, UserUpdate
+from .schemas import Token, UserCreate, UserRead, UserUpdate, UserProfile
 from .models import User
 from .security import create_access_token, get_password_hash, verify_password 
 from .dependencies import get_current_active_user, require_admin
@@ -100,6 +100,31 @@ def delete_user_endpoint(
     current_user: User = Depends(require_admin)
 ):
     delete_user(db, user_id=user_id)
+
+@router.get("/profile", response_model=UserProfile)
+def read_user_profile(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    from modules.sales.models import Sale
+    # Simple aggregation for profile
+    sales = db.query(Sale).filter(Sale.seller_id == current_user.id).all()
+    count = len(sales)
+    amount = sum(float(s.total_amount) for s in sales)
+    
+    # Construct response by copying user data and adding stats
+    # Pydantic's from_attributes (ORM mode) handles the User fields, but we need to mix them.
+    # Safest is to dump user model or arguments.
+    
+    return {
+        "id": current_user.id,
+        "username": current_user.username,
+        "role": current_user.role,
+        "is_active": current_user.is_active,
+        "created_at": current_user.created_at,
+        "total_sales_count": count,
+        "total_sales_amount": amount
+    }
 
 @router.get("/me", response_model=UserRead)
 async def read_users_me(

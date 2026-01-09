@@ -33,13 +33,18 @@ def create_sale(db: Session, sale_data: SaleCreate, seller: User) -> Sale:
         if product.quantity < item.quantity:
             raise HTTPException(status_code=400, detail=f"Insufficient stock for product '{product.name}'")
         
-        item_total = Decimal(product.sell_price) * Decimal(item.quantity)
+        # Use the price from the request (Seller sets it manually)
+        # Note: We can add a check against recommended_price if we want to enforce limits, 
+        # but the requirement says "Sellers set the price manually".
+        sold_price = item.sold_price
+        
+        item_total = sold_price * Decimal(item.quantity)
         total_amount += item_total
         
         sale_items_data.append({
             "product": product,
             "quantity": item.quantity,
-            "price": product.sell_price
+            "price": sold_price
         })
 
     # 2. Check Debt Rules
