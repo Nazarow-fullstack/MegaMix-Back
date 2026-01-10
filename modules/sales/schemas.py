@@ -31,7 +31,9 @@ class SaleItemRead(BaseModel):
 class SaleRead(BaseModel):
     id: int
     client_id: Optional[int]
+    client_name: Optional[str] = None
     seller_id: int
+    seller_name: str
     total_amount: Decimal
     paid_amount: Decimal
     items: List[SaleItemRead]

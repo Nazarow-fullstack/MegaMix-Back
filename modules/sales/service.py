@@ -1,5 +1,5 @@
 from decimal import Decimal
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from fastapi import HTTPException
 from .models import Sale, SaleItem, Refund, RefundItem
 from .schemas import SaleCreate, RefundCreate
@@ -261,10 +261,15 @@ def get_sales(
 ) -> list[Sale]:
     start_date, end_date = get_date_range(period, month, year)
     
-    query = db.query(Sale).filter(and_(Sale.created_at >= start_date, Sale.created_at <= end_date))
+    query = db.query(Sale).options(
+        joinedload(Sale.seller),
+        joinedload(Sale.client)
+    ).filter(and_(Sale.created_at >= start_date, Sale.created_at <= end_date))
     sales = query.order_by(Sale.created_at.desc()).offset(skip).limit(limit).all()
 
     for sale in sales:
+        sale.seller_name = sale.seller.username if sale.seller else "Unknown"
+        sale.client_name = sale.client.full_name if sale.client else None
         profit = 0.0
         for item in sale.items:
             # Handle potential missing product or buy_price

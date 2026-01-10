@@ -15,7 +15,7 @@ class Product(Base):
     name: Mapped[str] = mapped_column(String, index=True, nullable=False)
     description: Mapped[str | None] = mapped_column(String, nullable=True)
     unit: Mapped[str] = mapped_column(String, nullable=False)  # kg, pcs, etc.
-    items_per_pack: Mapped[int] = mapped_column(Integer, default=1) # How many items in 1 pack
+    items_per_pack: Mapped[int] = mapped_column(Integer, default=1, nullable=False) # How many items in 1 pack
     buy_price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False) # Secret
     recommended_price: Mapped[float | None] = mapped_column(Numeric(10, 2), nullable=True)
     quantity: Mapped[float] = mapped_column(Float, default=0.0) 
