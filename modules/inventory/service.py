@@ -45,7 +45,7 @@ def process_stock_movement(db: Session, movement: StockMovementCreate, user: Use
         
         # Auto-Expense Logic
         cost = Decimal(movement.change_amount) * Decimal(product.buy_price)
-        description = f"Auto-expense for product #{product.id} ({product.name}) arrival"
+        description = f"Авто-закупка: {product.name} (Поступление)"
         
         expense = Expense(
             amount=cost,
