@@ -23,8 +23,9 @@ class UserRead(UserBase):
 
 class UserProfile(UserRead):
     total_sales_count: int
-    total_sales_amount: float
-    # We could add more stats here
+    total_sales_revenue: float # Using float for Pydantic compatibility with Numeric
+    month_sales_revenue: float
+
 
 class UserUpdate(BaseModel):
     password: Optional[str] = None

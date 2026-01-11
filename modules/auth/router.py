@@ -11,7 +11,7 @@ from .schemas import Token, UserCreate, UserRead, UserUpdate, UserProfile
 from .models import User
 from .security import create_access_token, get_password_hash, verify_password 
 from .dependencies import get_current_active_user, require_admin
-from .service import get_all_users, update_user, delete_user, get_user_by_id
+from .service import get_all_users, update_user, delete_user, get_user_by_id, get_user_profile_stats
 
 router = APIRouter()
 
@@ -106,25 +106,7 @@ def read_user_profile(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user)
 ):
-    from modules.sales.models import Sale
-    # Simple aggregation for profile
-    sales = db.query(Sale).filter(Sale.seller_id == current_user.id).all()
-    count = len(sales)
-    amount = sum(float(s.total_amount) for s in sales)
-    
-    # Construct response by copying user data and adding stats
-    # Pydantic's from_attributes (ORM mode) handles the User fields, but we need to mix them.
-    # Safest is to dump user model or arguments.
-    
-    return {
-        "id": current_user.id,
-        "username": current_user.username,
-        "role": current_user.role,
-        "is_active": current_user.is_active,
-        "created_at": current_user.created_at,
-        "total_sales_count": count,
-        "total_sales_amount": amount
-    }
+    return get_user_profile_stats(db, current_user.id)
 
 @router.get("/me", response_model=UserRead)
 async def read_users_me(

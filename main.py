@@ -24,8 +24,7 @@ app.add_middleware(
     allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"],
-    expose_headers=["*"]
+    allow_headers=["*"]
 )
 
 from modules.auth.router import router as auth_router
@@ -34,6 +33,7 @@ from modules.clients.router import router as clients_router
 from modules.sales.router import router as sales_router
 from modules.analytics.router import router as analytics_router
 from modules.expenses.router import router as expenses_router
+from modules.chat.router import router as chat_router
 
 app.include_router(auth_router, prefix="/api/auth", tags=["Authentication & Users"])
 app.include_router(inventory_router, prefix="/api/inventory", tags=["Inventory"])
@@ -41,6 +41,7 @@ app.include_router(clients_router, prefix="/api/clients", tags=["Clients"])
 app.include_router(sales_router, prefix="/api/sales", tags=["Sales"])
 app.include_router(analytics_router, prefix="/api/analytics", tags=["Analytics"])
 app.include_router(expenses_router, prefix="/api/expenses", tags=["Expenses"])
+app.include_router(chat_router, prefix="/api/chat", tags=["Chat"])
 
 
 @app.get("/", tags=["Root"])

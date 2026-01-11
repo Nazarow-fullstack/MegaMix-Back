@@ -20,6 +20,7 @@ from modules.inventory import models as inventory_models
 from modules.clients import models as client_models
 from modules.sales import models as sales_models
 from modules.expenses import models as expense_models 
+from modules.chat import models as chat_models
 
 config = context.config
 

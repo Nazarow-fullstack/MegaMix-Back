@@ -1,4 +1,4 @@
-from sqlalchemy import Float, DateTime, func, ForeignKey, Numeric, String
+from sqlalchemy import Float, DateTime, func, ForeignKey, Numeric, String,Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from db_config import Base
 
@@ -11,7 +11,7 @@ class Sale(Base):
     total_amount: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
     paid_amount: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-
+    is_debt: Mapped[bool] = mapped_column(Boolean, default=False)
     client = relationship("modules.clients.models.Client")
     seller = relationship("modules.auth.models.User")
     items: Mapped[list["SaleItem"]] = relationship(back_populates="sale")
