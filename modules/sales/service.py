@@ -92,6 +92,7 @@ def create_sale(db: Session, sale_data: SaleCreate, seller: User) -> Sale:
         paid_amount=float(sale_data.paid_amount),
         is_debt=is_debt
     )
+    print(sale_data)
     db.add(db_sale)
     db.flush()
 
